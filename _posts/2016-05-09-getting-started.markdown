@@ -40,7 +40,7 @@ Finally, you'll need a serial console program. Like I said, I plunked down $30 U
 
 Now we're ready to try out our serial console. Plug in your USB-TTL adapter and connect to it via whatever serial console you decided to use. Once you've done that, apply power via the micro USB cable and watch your glorious serial data come pouring out to your console (for those that are powering via "the red wire", plug in the USB-TTL adapter **only** and then connect your console - if you're quick about it, you should be to catch some of the data coming out).
 
-What's that? You only see a garbled mess? Yeah. Me too. Tracking down this problem was one of the reasons I bought the CanaKit power supply -- in order to rule out bad power as port of the problem. I also bought a different brand of USB-TTL adapter. It's a shame I don't have a digital capture scope that can do protocol analysis. Wait -- I do. >_>
+What's that? You only see a garbled mess? Yeah. Me too. Tracking down this problem was one of the reasons I bought the CanaKit power supply -- in order to rule out bad power as part of the problem. I also bought a different brand of USB-TTL adapter. It's a shame I don't have a digital capture scope that can do protocol analysis. Wait -- I do. >_>
 
 As it turns out, the miniUART is clocked via the Broadcom's core clock and running at default frequency (400MHz) it can't divide its baud rate to 115200. We need to lower it to 250MHz to see serial output correctly. So power off your 3B, mount your micro SD card on your host machine, and add the following line to the config.txt file in the boot partition (the boot partition is a 60MB FAT32 formatted partition):
 
