@@ -1,2 +1,8 @@
 timezone: America/Phoenix
 title: "Piros: A Rust OS on a Raspberry Pi"
+markdown: kramdown
+gems:
+  - jekyll-feed
+  - jekyll-mentions
+  - jekyll-seo-tag
+syntax_highlighter: coderay
