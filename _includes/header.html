@@ -1,17 +1,57 @@
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/konohitowa/piros">View Companion Code on GitHub</a></li>
-          <li class="downloads"><a href="/">Home</a></li>
-          <li class="title"><a href="/about.html">About</a></li>
-        </nav>
-      </div><!-- end header -->
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <title>{{ site.name }}</title>
+  <meta name="theme-color" content="#222222" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="{{site.baseurl | prepend:site.url}}/javascripts/jquery.min.js"></script>
+  <script src="{{site.baseurl | prepend:site.url}}/javascripts/bootstrap.min.js"></script>
+  <script src="{{site.baseurl | prepend:site.url}}/javascripts/header.js"></script>
+  <script src="{{site.baseurl | prepend:site.url}}/javascripts/toc.js"></script>
+  <link href="{{site.baseurl | prepend:site.url}}/stylesheets/bootstrap.min.css" rel="stylesheet">
+  <link href="{{site.baseurl | prepend:site.url}}/stylesheets/theme.css" rel="stylesheet">
+  <link href="{{site.baseurl | prepend:site.url}}/stylesheets/syntax.css" rel="stylesheet">
+  <link href="{{site.baseurl | prepend:site.url}}/stylesheets/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+</head>
 
-    <div class="wrapper">
-      <section>
-        <div id="title">
-          <h2>{{ site.title }}</h2>
-          <p></p>
-          <hr>
-          <span class="credits left">Project maintained by <a href="https://github.com/konohitowa">konohitowa</a></span>
-          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
-        </div>
+<body>
+
+<script type="text/javascript">
+ WebFontConfig = {
+   google: {
+     families: ['Ubuntu::latin']
+   }
+ };
+ (function() {
+   var wf = document.createElement('script');
+   wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+     '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+   wf.type = 'text/javascript';
+   wf.async = 'true';
+   var s = document.getElementsByTagName('script')[0];
+   s.parentNode.insertBefore(wf, s);
+ })();
+</script>
+
+
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="{{site.baseurl | prepend:site.url}}/">{{ site.name }}</a>
+      </div>
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          <li><a href="{{site.baseurl | prepend:site.url}}/">/home</a></li>
+          <li><a href="https://github.com/konohitowa/piros/">/code</a></li>
+          <li><a href="{{site.baseurl | prepend:site.url}}/about.html">/about</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>

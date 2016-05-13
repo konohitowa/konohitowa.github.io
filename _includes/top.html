@@ -4,18 +4,17 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>{{ site.title }}</title>
-    <link rel="stylesheet" href="/stylesheets/styles.css">
-    <link rel="stylesheet" href="/stylesheets/github-dark.css">
-    <link rel="stylesheet" href="/stylesheets/syntax.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="/javascripts/respond.js"></script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="stylesheets/ie.css">
-    <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#222222" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{{site.baseurl | prepend:site.url}}/javascripts/jquery.min.js"></script>
+    <script src="{{site.baseurl | prepend:site.url}}/javascripts/bootstrap.min.js"></script>
+    <script src="{{site.baseurl | prepend:site.url}}/javascripts/header.js"></script>
+    <script src="{{site.baseurl | prepend:site.url}}/javascripts/toc.js"></script>
+    <link href="{{site.baseurl | prepend:site.url}}/stylesheets/bootstrap.min.css" rel="stylesheet">
+    <link href="{{site.baseurl | prepend:site.url}}/stylesheets/theme.css" rel="stylesheet">
+    <link href="{{site.baseurl | prepend:site.url}}/stylesheets/syntax.css" rel="stylesheet">
+    <link href="{{site.baseurl | prepend:site.url}}/stylesheets/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+
     {% feed_meta %}
     {% seo %}
   </head>

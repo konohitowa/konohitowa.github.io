@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: The Build Environment and Console I/O
 ---
 Now that we've verified our serial I/O is working under Linux, we can up our build environment and do some serial output ourselves.
@@ -67,7 +67,7 @@ Now we're ready to build the demo code we cloned with *git*.
     cd ~/rpi-3-aarch64-demo/64
     ./build.sh
 
-The build script compiled an assembly source code file, a C source code file, and then combined them into a file called *app.bin*. We're going to copy the *app.bin* file onto our boot partition but name it *kernel8.img*. We're also going to copy over the *config.txt* file found in this directory (you can see the contents of a directory using the command `ls`).
+The build script compiled an assembly source code file, a C source code file, and then combined them into a file called *app.bin*. We're going to copy the *app.bin* file onto our boot partition but name it *kernel8.img*. We're also going to copy over the *config.txt* file found in this directory (you can see the contents of a directory using the command **ls**).
 
     cp config.txt /media/$USER/boot/.
     cp app.bin /media/$USER/boot/kernel8.img
@@ -101,13 +101,13 @@ hang:
 	b hang
 ~~~
 
-The first two lines are just instructions to the assembler telling it to keep track of the label `_start` and to make it available outside of the generated object file during the build process.  The next two lines load the number 0x0010_0000 (hexadecimal for 1_048_576) into the CPUs register named *x5* and then moves that value from *x5* into the stack pointer *sp*. So, "load register x5 with 0x0010_0000" and "move the contents of x5 into the stack pointer". This initializes the CPUs stack pointer to an area of RAM that isn't being used.
+The first two lines are just instructions to the assembler telling it to keep track of the label **_start** and to make it available outside of the generated object file during the build process.  The next two lines load the number 0x0010_0000 (hexadecimal for 1_048_576) into the CPUs register named *x5* and then moves that value from *x5* into the stack pointer *sp*. So, "load register x5 with 0x0010_0000" and "move the contents of x5 into the stack pointer". This initializes the CPUs stack pointer to an area of RAM that isn't being used.
 
-The next line jumps to the instruction that's labeled with `app`. It's not in this file, so we won't worry too much about that for the moment. But it does more than just that: `bl` means "branch with link". The *branch* part just means "goto". The *link* part loads the address of the next instruction after it into the link register *lr*, which is also known as register fourteen (*r14*). This will matter to us later.
+The next line jumps to the instruction that's labeled with **app**. It's not in this file, so we won't worry too much about that for the moment. But it does more than just that: **bl** means "branch with link". The *branch* part just means "goto". The *link* part loads the address of the next instruction after it into the link register *lr*, which is also known as register fourteen (*r14*). This will matter to us later.
 
-Finally, there's a label named `hang` and an instruction that tells the CPU to goto the address labeled `hang`, which in this case causes the CPU to keep doing the same thing repeatedly, or "hang".
+Finally, there's a label named **hang** and an instruction that tells the CPU to goto the address labeled **hang**, which in this case causes the CPU to keep doing the same thing repeatedly, or "hang".
 
-Let's go see where where `bl app` took us. In the file named *app.c*, there's a routine[^3] toward the bottom named *app*. I've condensed it a bit to focus on the parts we care about.
+Let's go see where where **bl app** took us. In the file named *app.c*, there's a routine[^3] toward the bottom named *app*. I've condensed it a bit to focus on the parts we care about.
 
 ~~~ c
 void app(uint32_t r0, uint32_t r1, uint32_t r2, uint32_t r3)
@@ -120,9 +120,16 @@ void app(uint32_t r0, uint32_t r1, uint32_t r2, uint32_t r3)
   dbg_puts("Hello, world!\r\n");
 ~~~
 
-Our main routine here is named *app* which is where our missing symbol is in the *start.S* file. This is where the CPU is jumping to via the `bl app` instruction. The code declares some variables to work with (one of which might be stored in our stack, which is why we initialized the stack pointer), does a few things in the omitted area, and then calls a routine named dbg_puts which outputs a string to the serial console.
+Our main routine here is named *app* which is where our missing symbol is in the *start.S* file. This is where the CPU is jumping to via the **bl app** instruction. The code declares some variables to work with (one of which might be stored in our stack, which is why we initialized the stack pointer), does a few things in the omitted area, and then calls a routine named dbg_puts which outputs a string to the serial console. The rest of the code after that does mostly the same thing (aside from some "mystery code" at the end that we won't worry about) and the routine finishes with:
 
-The routine dbg_puts just calls the routine bcm283x_mu_serial_putc repeadtedly with every letter in the string "Hello, world!\r\n" so we're going to skip straight to bcm283x_mu_serial_putc.
+~~~ c
+while (1) {
+}
+~~~
+
+This just loops at that spot forever. Had it not been there, it would have returned to the next instruction after our **bl app** instruction in **start.S**. The way the CPU knows how to get there is because we stored that address in our link register (**lr**). It's actually a bit more complicated than that, but it's essentially true that the link register is what tells the CPU where to return to when it executes a return (**ret**) instruction. And this is why we have the **b hang** instruction: if our **app** routine had actually returned rather than looping, the CPU would continue on its merry way, trying to execute whatever values happened to be in memory after our **start** code. That could be a bad thing.
+
+Now let's see what calling dbg_puts actually does. The dbg_puts routine just calls the routine bcm283x_mu_serial_putc repeatedly with every character in the string "Hello, world!\r\n", so we're going to skip straight to bcm283x_mu_serial_putc.
 
 ~~~ c
 static void bcm283x_mu_serial_putc(const char data)
@@ -138,7 +145,7 @@ static void bcm283x_mu_serial_putc(const char data)
 }
 ~~~
 
-The first line overlays a structure at the address defined by BCM2835_MU_BASE. The 3B actually has a Broadcom 2837 chip in it (BCM2837), but this particular structure mostly matches the 2837. We'll take a closer look at the structure as well as that address definition later; for now, all you need to know is that it gives us some handy pointers to a couple of I/O registers on the chip. The first one is the LSR (Line Status Register). It, not surprisingly, tells us the status of the serial line. If the 6<sup>th</sup> bit from the right (bit 5, counting from 0) in that register is a zero (0), it means the UART is busy and can't accept any more data. So the *while* loop sits and spins reading the value of the register using the *readl* routine waiting for the bit to switch to a one (1). If the bit is a one, it then calls the *writel* routine, passing in the character to send and the address of the I/O register.
+The first line overlays a structure at the address defined by BCM2835_MU_BASE. The 3B actually has a Broadcom 2837 chip in it (BCM2837), but this particular structure mostly matches the 2837. We'll take a closer look at the structure as well as that address definition later; for now, all you need to know is that it gives us some handy pointers to a couple of I/O registers on the chip. The first one is the LSR (Line Status Register). It, not surprisingly, tells us the status of the serial line. If the 6<sup>th</sup> bit from the right (bit 5, counting from 0) in that register is a zero (0), it means the UART is busy and can't accept any more data. So the *while* loop sits and spins reading the value of the register using the *readl* routine waiting for the bit to switch to a one (1). If the bit is a one, it then calls the *writel* routine, passing in the character to send along with the address of the I/O register.
 
 If you look at the rest of the code, *readl* and *writel* aren't actually routines; they're macros that call other macros. All they do is tell the compiler to make sure that it actually does what we've told it to do. Compilers can be too smart for their own good, particularly when dealing with hardware. From the compiler's perspective, you're reading the same piece of memory repeatedly in the while loop -- since it has no reason to think that location is going to change since the last time it was read, it could easily optimize it away and only read it once. Plus, as far as it can tell, the data read from it isn't used for any reason; again, another reason for it not to generate any code. So when dealing with the registers, we let the compiler know that they're *volatile*, meaning their contents can change from outside of the code that's executing.
 
@@ -160,7 +167,7 @@ SECTIONS
 	}
 ~~~
 
-The *OUTPUT* commands tell it about our target architecture and the *ENTRY* command tells it where our starting point for the code is going to be. The *SECTIONS* command tells it how we want our generated code organized. The first line tells the linker that we want our following commands to star at address 0x0008_0000. Then there's a command to tell it to align our address to the next 8-byte boundary (it already is). The *.text* section's most important part is to tell the linker to put the *start* code at the very beginning. Then the other *.text* object (the other code) can come after it. The rest of the file tells it where to put all the strings we defined and where global variables should be stored and so forth.
+The *OUTPUT* commands tell it about our target architecture and the *ENTRY* command tells it where our starting point for the code is going to be. The *SECTIONS* command tells it how we want our generated code organized. The first line tells the linker that we want our following commands to start at address 0x0008_0000. Then there's a command to tell it to align our address to the next 8-byte boundary (it already is). The *.text* section's most important part is to tell the linker to put the *start* code at the very beginning. Then the other *.text* object (the other code) can come after it. The rest of the file tells it where to put all the strings we defined and where global variables should be stored and so forth.
 
 Finally, let's look at the *build.sh* file.
 
@@ -175,11 +182,11 @@ ${CROSS_COMPILE}objcopy --gap-fill=0xff -j .text -j .rodata -j .data -O binary a
 
 The first line defines a variable that we'll use later. You'll notice it's the same as our target triplet with a hyphen on the end. The native GNU compiler is called *gcc*, the native linker is *ld*, etc. The cross compilers are all of the same names but prefixed by the triplet plus a hyphen. So the second line is calling the GNU C cross compiler and assembling our *start.S* file (it knows it's an assembly file because of the *.S* extension) and outputting it in object format to the *start.o* file.
 
-The next line compiles our C source code and outputs the result into the *app.o* object file. Then the linker is called. Points to note are the -nostdlib option which tells it not to link in any of the C standard libraries (since we don't have an operating system for it make calls to) nor to include the standard C start files since they would conflict with our code (we want to be the only code running, plus the linker would expect there to be a label named *_main* which we don't have). The -Ttext option tells the linker to remap our text section t0 0x8000 because that's where the bootloader is expecting the kernel's starting point to be. The output of the linking process ends up in *app.elf*, which is in [ELF](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) format. The bootloader is expecting a *flat* file rather than ELF -- which has a lot of directives in it telling a loader where to put various things as well as extra information pertaining to section names and so forth -- so the *objcopy* command *flattens* the ELF file and outputs the result to the *app.bin* file.
+The next line compiles our C source code and outputs the result into the *app.o* object file. Then the linker is called. Points to note are the **-nostdlib** option which tells it not to link in any of the C standard libraries (since we don't have an operating system for it make calls to) nor to include the standard C start files since they would conflict with our code (we want to be the only code running, plus the linker would expect there to be a label named *_main* which we don't have). The **-Ttext** option tells the linker to remap our text section to 0x8000 because that's where the bootloader is expecting the kernel's starting point to be. The output of the linking process ends up in *app.elf*, which is in [ELF](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) format. The bootloader is expecting a *flat* file rather than ELF -- which has a lot of directives in it telling a loader where to put various things as well as extra information pertaining to section names and so forth -- so the *objcopy* command *flattens* the ELF file and outputs the result to the *app.bin* file.
 
-Wow. That was a lot to go over. I was hoping to get to the start of our own program, but this has gone far longer than I expected and, honestly, I need some sleep. Next time, we'll strips Stephen's code down to a very small sample and then get started with Rust.
+Wow. That was a lot to go over. I was hoping to get to the start of our own program, but this has gone far longer than I expected and, honestly, I need some sleep. Next time, we'll strip Stephen's code down to a very small sample and then get started with Rust.
 
-As always, comments and corrections are welcome. Given how much information is in this post, I'll be really surprised if there aren't any glaring errors.
+As always, comments and corrections are welcome. Given how much information is in this post, I'll be really surprised if there aren't any glaring errors[^4].
 
 ---
 
@@ -188,6 +195,7 @@ As always, comments and corrections are welcome. Given how much information is i
 [^1]: This isn't strictly true since we could, for example, cross compile a 32-bit x86 Linux program that could run on our 64-bit x86 Linux system. But you get the general idea.
 [^2]: The image was contained in an answer to [this question](http://raspberrypi.stackexchange.com/questions/10442/what-is-the-boot-sequence) on the Raspberry Pi stack.
 [^3]: In C, it's actually called a *function* rather than a *routine*. I'm going to use routine since a function really should return a value and in C a *void* function doesn't. I really only added this footnote to reduce any pedantry in the comments. Hopefully it doesn't start a flamewar.
+[^4]: Edited on 05/12/2016 23:00MST for a bunch of glaring errors and typos.
 *[GCC]: The GNU Compiler Collection
 *[CLI]: Command Line Interface
 *[3B]: Raspberry Pi 3 Model B
